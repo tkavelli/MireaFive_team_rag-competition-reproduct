@@ -19,16 +19,32 @@
 git clone https://github.com/tkavelli/retrieval-competition-reproduct.git
 cd retrieval-competition-reproduct
 
-# Сборка и запуск Docker контейнера
+# Сборка контейнера (Ubuntu 24.04 + CUDA 12.8)
 docker build -t alfa-rag-solution .
-docker run --gpus all -v $(pwd)/outputs:/app/outputs alfa-rag-solution
+
+# Запуск. Данные уже упакованы в образ, выносим только результаты и кэш HF (опционально)
+docker run --gpus all \
+  -v $(pwd)/outputs:/app/outputs \
+  -v $(pwd)/.hf_cache:/app/.hf_cache \
+  alfa-rag-solution
+```
+
+Если хотите использовать локальные CSV вместо упакованных в образ:
+
+```bash
+docker run --gpus all \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/outputs:/app/outputs \
+  -v $(pwd)/.hf_cache:/app/.hf_cache \
+  alfa-rag-solution \
+  bash -c "cd /app && bash run_qwen3_rrf_v2_stable.sh"
 ```
 
 ### 2. Локальный запуск
 
 ```bash
 # Требования:
-# - Python 3.13+
+# - Python 3.13.7 (точно как в Docker)
 # - NVIDIA GPU с 24GB+ VRAM
 # - CUDA 12.8+
 # - GPU с поддержкой FA 2

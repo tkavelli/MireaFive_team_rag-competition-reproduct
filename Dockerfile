@@ -1,28 +1,42 @@
-FROM nvidia/cuda:12.8-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.0-devel-ubuntu24.04
 
 # Описание контейнера
 LABEL maintainer="tkavelli"
 LABEL description="Alfa Bank RAG Competition Solution - Hit@5: 36.40% reproducible"
 LABEL version="1.0"
 
-# Установка системных зависимостей
+# Установка системных зависимостей (сборка Python 3.13.7 из исходников)
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    python3.13 \
-    python3.13-venv \
-    python3.13-dev \
-    python3-pip \
     git \
     wget \
     curl \
     build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libffi-dev \
+    liblzma-dev \
+    tk-dev \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Создание виртуального окружения
-RUN python3.13 -m venv /opt/venv
+# Сборка и установка Python 3.13.7 (совпадает с локальным окружением пользователя)
+RUN PYTHON_VERSION=3.13.7 && \
+    wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
+    tar -xf Python-${PYTHON_VERSION}.tgz && \
+    cd Python-${PYTHON_VERSION} && \
+    ./configure --enable-optimizations --with-ensurepip=install && \
+    make -j"$(nproc)" && make altinstall && \
+    cd .. && rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz
+
+# Создание виртуального окружения на Python 3.13.7
+RUN /usr/local/bin/python3.13 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Установка PyTorch 2.8.0 с CUDA 12.8
+# Установка PyTorch 2.8.0 с CUDA 12.8 (cp313 wheels доступны на официальном индексe)
 RUN pip3 install --no-cache-dir torch==2.8.0 torchvision==0.23.0 \
     --index-url https://download.pytorch.org/whl/cu128
 
@@ -38,11 +52,12 @@ RUN pip3 install --no-cache-dir faiss-gpu==1.12.0 || \
 WORKDIR /app
 RUN mkdir -p /app/data /app/outputs /app/artifacts
 
-# Копирование кода проекта
+# Копирование кода проекта и данных
 COPY src/ /app/src/
 COPY pipelines/ /app/pipelines/
 COPY configs/ /app/configs/
 COPY scripts/ /app/scripts/
+COPY data/*.csv /app/data/
 COPY run_*.sh /app/
 
 # Права доступа

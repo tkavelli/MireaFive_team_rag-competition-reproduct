@@ -31,46 +31,45 @@
 
 ## 🚀 Быстрый старт
 
-### 1. Клонирование репозитория
+### 1. Docker (полностью воспроизводимо)
 
 ```bash
 git clone <repository-url>
-cd retrieval-competition
+cd retrieval-competition-reproduct
+
+# Сборка образа (Ubuntu 24.04 + CUDA 12.8)
+docker build -t alfa-rag-solution .
+
+# Запуск: данные уже внутри образа, наружу отдаем только результаты и кэш HF (опционально)
+docker run --gpus all \
+  -v $(pwd)/outputs:/app/outputs \
+  -v $(pwd)/.hf_cache:/app/.hf_cache \
+  alfa-rag-solution
 ```
 
-### 2. Установка зависимостей
+Альтернатива — использовать свои CSV вместо упакованных:
 
 ```bash
-# Создание виртуального окружения
+docker run --gpus all \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/outputs:/app/outputs \
+  -v $(pwd)/.hf_cache:/app/.hf_cache \
+  alfa-rag-solution \
+  bash -c "cd /app && bash run_qwen3_rrf_v2_stable.sh"
+```
+
+### 2. Локальный запуск (без Docker)
+
+```bash
+# Рекомендуем Python 3.13.7 (как в контейнере). На Arch можно через pyenv:
+#   pyenv install 3.13.7 && pyenv local 3.13.7
+
 python -m venv .venv
 source .venv/bin/activate
-
-# Установка PyTorch 2.8.0 с CUDA 12.8 (обязательно!)
 pip3 install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
-
-# Установка остальных зависимостей
 pip install -r requirements.txt
 
-# Опционально: GPU версия FAISS для ускорения
-# pip install faiss-gpu==1.12.0
-```
-
-### 3. Проверка исходных данных
-
-Убедитесь, что в корне репозитория есть два файла:
-
-- `questions_clean.csv` (~6,977 вопросов)
-- `websites.csv` (~1,937 документов)
-
-```bash
-# Проверка
-ls -lh questions_clean.csv websites.csv
-```
-
-### 4. Запуск pipeline
-
-```bash
-# Запустить скрипт воспроизведения
+# Данные лежат в data/
 bash run_qwen3_rrf_v2_stable.sh
 ```
 
@@ -278,4 +277,4 @@ python -c "import torch; print(torch.cuda.is_available())"
 
 ---
 
-**Последнее обновление**: 2025-11-16
+**Последнее обновление**: 2025-11-25

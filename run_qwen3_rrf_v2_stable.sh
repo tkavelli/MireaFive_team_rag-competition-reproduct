@@ -31,10 +31,13 @@ echo ""
 # Kill any existing processes first
 pkill -f "qwen3_rrf_v2_context7.csv" || true
 
+# Ensure outputs directory exists (important inside fresh containers)
+mkdir -p outputs
+
 # Run retrieval pipeline with stable parameters
 python pipelines/retrieve.py \
-  --queries questions_clean.csv \
-  --corpus websites.csv \
+  --queries data/questions_clean.csv \
+  --corpus data/websites.csv \
   --out outputs/submission_qwen3_rrf_v2_stable.csv \
   --model "Qwen/Qwen3-Embedding-8B" \
   --chunk_version ch_v5 \
