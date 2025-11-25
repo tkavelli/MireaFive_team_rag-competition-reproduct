@@ -197,7 +197,7 @@ sudo systemctl restart docker
 GitHub: [@tkavelli](https://github.com/tkavelli)
 Telegram [@Nikolay_Bubnov]
 
-## Pending / Not Yet Integrated
+## Запланировано / Не реализовано
 
 - **Qwen3 reranking (отдельный шаг):**
   - Скрипт: `scripts/run_qwen3_rerank_from_cache.py` (поддерживает int4 через bitsandbytes).
