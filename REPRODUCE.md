@@ -6,7 +6,7 @@
 
 - **Hit@5**: 36.40%
 - **Модель**: Qwen/Qwen3-Embedding-8B
-- **Submission файл**: `outputs/submission_qwen3_rrf_v2_stable.csv`
+- **Submission файл**: `outputs/submission_ch_v5_qwen3_8b.csv`
 - **Дата**: 2025-11-16
 
 ---
@@ -77,7 +77,7 @@ bash run_qwen3_rrf_v2_stable.sh
 
 ---
 
-## 📁 Структура необходимых файлов
+## Структура необходимых файлов
 
 Для воспроизведения требуются следующие файлы:
 
@@ -99,12 +99,18 @@ retrieval-competition/
 │       └── qwen3_embedding_stable.py     # Qwen3 wrapper
 │
 └── outputs/
-    └── submission_qwen3_rrf_v2_stable.csv  # Результат (создастся после запуска)
+    ├── submission_ch_v5_qwen3_8b.csv          # Результат (создаётся после запуска)
+    ├── chunks_ch_v5_qwen3_8b.csv              # Чанки, если пересчитывались
+    └── faiss_index_ch_v5_qwen3_8b/            # FAISS индекс
+        ├── embeddings.npy
+        ├── faiss_index.bin
+        ├── chunks.csv
+        └── metadata.json
 ```
 
 ---
 
-## 🔧 Конфигурация
+## Конфигурация
 
 ### Основные параметры (из `run_qwen3_rrf_v2_stable.sh`)
 
@@ -112,7 +118,7 @@ retrieval-competition/
 python pipelines/retrieve.py \
   --queries questions_clean.csv \
   --corpus websites.csv \
-  --out outputs/submission_qwen3_rrf_v2_stable.csv \
+  --out outputs/submission_ch_v5_qwen3_8b.csv \
   --model "Qwen/Qwen3-Embedding-8B" \
   --chunk_version ch_v5 \
   --model_name qwen3_8b \
@@ -141,16 +147,16 @@ python pipelines/retrieve.py \
 
 ---
 
-## 🔍 Проверка результата
+## Проверка результата
 
 После выполнения скрипта проверьте:
 
 ```bash
 # 1. Наличие submission файла
-ls -lh outputs/submission_qwen3_rrf_v2_stable.csv
+ls -lh outputs/submission_ch_v5_qwen3_8b.csv
 
 # 2. Формат (первые 5 строк)
-head -5 outputs/submission_qwen3_rrf_v2_stable.csv
+head -5 outputs/submission_ch_v5_qwen3_8b.csv
 
 # Ожидаемый вывод:
 # q_id,web_list
@@ -159,12 +165,12 @@ head -5 outputs/submission_qwen3_rrf_v2_stable.csv
 # ...
 
 # 3. Количество строк (должно быть 6978: заголовок + 6977 предсказаний)
-wc -l outputs/submission_qwen3_rrf_v2_stable.csv
+wc -l outputs/submission_ch_v5_qwen3_8b.csv
 ```
 
 ---
 
-## 📊 Архитектура решения
+## Архитектура решения
 
 ### Pipeline Overview
 
@@ -208,7 +214,7 @@ submission_qwen3_rrf_v2_stable.csv
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### CUDA Out of Memory
 
@@ -242,7 +248,7 @@ python -c "import torch; print(torch.cuda.is_available())"
 
 ---
 
-## 📝 Примечания
+## Примечания
 
 1. **Детерминизм**: Результаты могут немного отличаться из-за:
    - Порядка обработки батчей
@@ -258,7 +264,7 @@ python -c "import torch; print(torch.cuda.is_available())"
 
 ---
 
-## 📖 Дополнительная информация
+## Дополнительная информация
 
 - **Полный лог экспериментов**: `PROGRESS_LOG.md`
 - **Таблица результатов**: `experiments/README.md`
@@ -267,7 +273,7 @@ python -c "import torch; print(torch.cuda.is_available())"
 
 ---
 
-## 📧 Контакты
+## Контакты
 
 Если возникнут вопросы по воспроизведению результата, пожалуйста:
 

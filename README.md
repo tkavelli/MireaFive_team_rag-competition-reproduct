@@ -27,6 +27,10 @@ docker run --gpus all \
   -v $(pwd)/outputs:/app/outputs \
   -v $(pwd)/.hf_cache:/app/.hf_cache \
   alfa-rag-solution
+
+# Примечание: сборка занимает 3–10 минут из-за компиляции Python 3.13.7 внутри образа.
+# Если нужен подробный лог, включите BuildKit:
+# DOCKER_BUILDKIT=1 docker build --progress=plain -t alfa-rag-solution .
 ```
 
 Если хотите использовать локальные CSV вместо упакованных в образ:
@@ -115,7 +119,13 @@ retrieval-competition-reproduct/
 │   └── retrieve.py              # Основной pipeline
 │
 └── outputs/                     # Результаты (создаются после запуска)
-    └── submission_qwen3_rrf_v2_stable.csv
+    ├── submission_ch_v5_qwen3_8b.csv
+    ├── chunks_ch_v5_qwen3_8b.csv
+    └── faiss_index_ch_v5_qwen3_8b/
+        ├── embeddings.npy
+        ├── faiss_index.bin
+        ├── chunks.csv
+        └── metadata.json
 ```
 
 ## Конфигурация
@@ -140,10 +150,10 @@ retrieval-competition-reproduct/
 
 ```bash
 # Проверка формата submission файла
-head -5 outputs/submission_qwen3_rrf_v2_stable.csv
+head -5 outputs/submission_ch_v5_qwen3_8b.csv
 
 # Проверка количества строк
-wc -l outputs/submission_qwen3_rrf_v2_stable.csv
+wc -l outputs/submission_ch_v5_qwen3_8b.csv
 # Ожидается: 6978 (заголовок + 6977 предсказаний)
 ```
 
@@ -185,6 +195,27 @@ sudo systemctl restart docker
 ## Контакты
 
 GitHub: [@tkavelli](https://github.com/tkavelli)
+Telegram [@Nikolay_Bubnov]
+
+## Pending / Not Yet Integrated
+
+- **Qwen3 reranking (отдельный шаг):**
+  - Скрипт: `scripts/run_qwen3_rerank_from_cache.py` (поддерживает int4 через bitsandbytes).
+  - План: брать готовый FAISS из `outputs/faiss_index_ch_v5_qwen3_8b` (или свой), пул 100–120 кандидатов, собирать контекст из 2–3 топ-чанков + соседей до ~6k токенов, реранкер `Qwen/Qwen3-Reranker-8B` (или 4B) в int4, `batch_size` 4–6, `rerank_to=5`.
+  - Запуск (пример):
+    ```bash
+    python scripts/run_qwen3_rerank_from_cache.py \
+      --queries data/questions_clean.csv \
+      --index-dir outputs/faiss_index_ch_v5_qwen3_8b \
+      --pool-size 120 --rerank-to 5 \
+      --reranker-model Qwen/Qwen3-Reranker-8B \
+      --reranker-quantization int4 \
+      --max-doc-tokens 6000 --chunks-per-doc 3 --max-chunks-per-doc 5
+    ```
+
+- **Альтернативные чанки (v6 и др.):**
+  - Генерация: `scripts/generate_chunk_variants.py` (можно через JSON-конфиг). Рекомендуемый старт для реранка — chunk_size ~1000–1200, overlap 80–120.
+  - Текущий baseline пересчитывает v5 внутри `run_qwen3_rrf_v2_stable.sh`. Чтобы использовать готовые чанки/индекс, передайте `--chunks-file` и `--index_path` в `pipelines/retrieve.py` или соберите FAISS из CSV перед реранком.
 
 ---
 

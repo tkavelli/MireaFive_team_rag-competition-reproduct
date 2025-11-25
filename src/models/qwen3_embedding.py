@@ -116,11 +116,12 @@ class Qwen3EmbeddingModel:
                 self.model = AutoModel.from_pretrained(
                     model_name,
                     torch_dtype=torch.float16,
-                    device_map="auto",
+                    device_map=None,  # single-GPU; avoids accelerate dependency
                     trust_remote_code=False,
                     low_cpu_mem_usage=True,
                     attn_implementation="flash_attention_2"
                 )
+                self.model.to(self.device)
                 logger.info("Flash Attention 2 enabled successfully!")
                 logger.info("Expected: +30-50% speed, -20-30% VRAM usage")
             except Exception as e:
@@ -130,10 +131,11 @@ class Qwen3EmbeddingModel:
                 self.model = AutoModel.from_pretrained(
                     model_name,
                     torch_dtype=torch.float16,
-                    device_map="auto",
+                    device_map=None,
                     trust_remote_code=False,
                     low_cpu_mem_usage=True
                 )
+                self.model.to(self.device)
                 logger.info("Model loaded with standard attention (slower but compatible)")
 
             self.model.eval()

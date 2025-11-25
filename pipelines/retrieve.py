@@ -214,7 +214,9 @@ def chunk_documents(
 def build_retriever(
     chunks_df: pd.DataFrame,
     model_name: str,
-    index_path: Optional[str] = None
+    index_path: Optional[str] = None,
+    batch_size: int = 32,
+    load_in_8bit: bool = False
 ) -> HybridRetriever:
     """
     Строит ретривер
@@ -227,8 +229,8 @@ def build_retriever(
     Returns:
         Объект ретривера
     """
-    logger.info(f"Построение ретривера с моделью {model_name}")
-    retriever = HybridRetriever(model_name=model_name)
+    logger.info(f"Построение ретривера с моделью {model_name}, batch_size={batch_size}, load_in_8bit={load_in_8bit}")
+    retriever = HybridRetriever(model_name=model_name, batch_size=batch_size, load_in_8bit=load_in_8bit)
 
     retriever.build_index(chunks_df)
 
@@ -434,8 +436,11 @@ def generate_output_paths(base_output: str, chunk_name: str, model_name: str):
     base_path = Path(base_output)
     parent_dir = base_path.parent
 
-    # Генерируем имена с версиями
-    version_str = f"{chunk_name}_{model_name}"
+    # Если chunk_name или model_name пустые, подставляем заглушки
+    chunk_component = chunk_name or "unknown_chunk"
+    model_component = model_name or "unknown_model"
+
+    version_str = f"{chunk_component}_{model_component}"
 
     submission_path = parent_dir / f"submission_{version_str}.csv"
     chunks_path = parent_dir / f"chunks_{version_str}.csv"
@@ -496,6 +501,10 @@ def main():
     parser.add_argument("--model", default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
                        help="Модель эмбеддингов")
     parser.add_argument("--index_path", help="Путь для сохранения/загрузки индекса")
+    parser.add_argument("--batch_size", type=int, default=32,
+                       help="Batch size для инференса эмбеддингов (уменьшайте при OOM)")
+    parser.add_argument("--load_in_8bit", action="store_true", default=False,
+                       help="Загружать модель в 8-bit (экономия VRAM, медленнее)")
 
     # Параметры поиска
     parser.add_argument("--use_hybrid", action="store_true", default=True,
@@ -539,7 +548,7 @@ def main():
         chunk_name = Path(args.chunks_file).stem
 
     version_str = generate_version_string(chunk_name, model_name, args.fusion_method, args)
-    submission_path, chunks_path, index_path_versioned = generate_output_paths(args.out, version_str)
+    submission_path, chunks_path, index_path_versioned = generate_output_paths(args.out, chunk_name, model_name)
 
     args.out = submission_path
     if not args.index_path:
