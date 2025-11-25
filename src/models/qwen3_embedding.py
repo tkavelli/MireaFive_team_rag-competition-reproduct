@@ -2,13 +2,12 @@
 Qwen3 Embedding wrapper with official Context7 optimizations.
 
 Requirements:
-- transformers>=4.51.0 ✅ (we have 4.57.1)
-- sentence-transformers>=2.7.0 ✅ (we have 5.1.2)
+- transformers>=4.51.0
+- sentence-transformers>=2.7.0
 - flash-attn (optional, for +30-50% speed): pip install flash-attn --no-build-isolation
 
 Features:
 - Flash Attention 2 with fallback for maximum performance
-- Official instruction formatting from Context7 docs
 - Memory-efficient processing with adaptive batch sizes
 - Last token pooling as recommended in Qwen3 documentation
 """
@@ -122,12 +121,12 @@ class Qwen3EmbeddingModel:
                     low_cpu_mem_usage=True,
                     attn_implementation="flash_attention_2"
                 )
-                logger.info("✅ Flash Attention 2 enabled successfully!")
-                logger.info("💡 Expected: +30-50% speed, -20-30% VRAM usage")
+                logger.info("Flash Attention 2 enabled successfully!")
+                logger.info("Expected: +30-50% speed, -20-30% VRAM usage")
             except Exception as e:
-                logger.warning(f"⚠️ Flash Attention 2 not available: {e}")
-                logger.info("📦 To install Flash Attention 2: pip install flash-attn --no-build-isolation")
-                logger.info("🔄 Falling back to standard attention...")
+                logger.warning(f"Flash Attention 2 not available: {e}")
+                logger.info("To install Flash Attention 2: pip install flash-attn --no-build-isolation")
+                logger.info("Falling back to standard attention...")
                 self.model = AutoModel.from_pretrained(
                     model_name,
                     torch_dtype=torch.float16,
@@ -135,7 +134,7 @@ class Qwen3EmbeddingModel:
                     trust_remote_code=False,
                     low_cpu_mem_usage=True
                 )
-                logger.info("✅ Model loaded with standard attention (slower but compatible)")
+                logger.info("Model loaded with standard attention (slower but compatible)")
 
             self.model.eval()
             self.model_embedding_dim = self.model.config.hidden_size
@@ -345,7 +344,7 @@ class Qwen3EmbeddingModel:
 
             # Use official prompt handling
             if is_query:
-                logger.info("📝 Using built-in prompt_name='query' for queries")
+                logger.info("Using built-in prompt_name='query' for queries")
                 embeddings = st_model.encode(
                     texts,
                     batch_size=batch_size,
@@ -355,7 +354,7 @@ class Qwen3EmbeddingModel:
                     convert_to_numpy=True
                 )
             else:
-                logger.info("📄 Encoding documents without prompts (official recommendation)")
+                logger.info("Encoding documents without prompts (official recommendation)")
                 embeddings = st_model.encode(
                     texts,
                     batch_size=batch_size,
@@ -364,15 +363,15 @@ class Qwen3EmbeddingModel:
                     convert_to_numpy=True
                 )
 
-            logger.info(f"✅ SentenceTransformer encoding completed: {embeddings.shape}")
+            logger.info(f"SentenceTransformer encoding completed: {embeddings.shape}")
             return embeddings
 
         except ImportError:
-            logger.warning("⚠️ SentenceTransformer not available, falling back to AutoModel")
+            logger.warning("SentenceTransformer not available, falling back to AutoModel")
             return self.encode(texts, batch_size=batch_size, is_query=is_query,
                             normalize_embeddings=normalize_embeddings, show_progress=show_progress)
         except Exception as e:
-            logger.error(f"❌ SentenceTransformer encoding failed: {e}")
-            logger.info("🔄 Falling back to AutoModel method...")
+            logger.error(f"SentenceTransformer encoding failed: {e}")
+            logger.info("Falling back to AutoModel method...")
             return self.encode(texts, batch_size=batch_size, is_query=is_query,
                             normalize_embeddings=normalize_embeddings, show_progress=show_progress)

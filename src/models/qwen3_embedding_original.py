@@ -113,7 +113,7 @@ class Qwen3EmbeddingModel:
                     low_cpu_mem_usage=True,
                     attn_implementation="flash_attention_2"  # Context7 optimization
                 )
-                logger.info("✅ Flash Attention 2 enabled")
+                logger.info("Flash Attention 2 enabled")
             except Exception as flash_error:
                 logger.warning(f"Flash Attention 2 not available: {flash_error}")
                 logger.info("Loading model without flash_attention_2...")
