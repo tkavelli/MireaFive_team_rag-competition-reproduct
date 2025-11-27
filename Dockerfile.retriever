@@ -1,0 +1,35 @@
+# Lightweight image that ships the precomputed chunk_v6 + Qwen3-8B artifacts
+# and can optionally rerun retrieval if you override the entrypoint.
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    HF_HOME=/app/.hf_cache \
+    TRANSFORMERS_CACHE=/app/.hf_cache \
+    PYTHONPATH=/app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt \
+ && pip3 install --no-cache-dir faiss-gpu==1.7.2.post3 || pip3 install --no-cache-dir faiss-cpu==1.7.2
+
+COPY src/ src/
+COPY pipelines/ pipelines/
+COPY configs/ configs/
+COPY scripts/ scripts/
+COPY data/ data/
+COPY outputs/ outputs/
+COPY run_retriever_cached.sh ./
+
+RUN chmod +x run_retriever_cached.sh
+
+# By default just copies the cached artifacts to the mounted /app/outputs.
+CMD ["bash", "run_retriever_cached.sh"]

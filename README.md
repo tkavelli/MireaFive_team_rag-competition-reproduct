@@ -223,3 +223,22 @@ Telegram [@Nikolay_Bubnov]
 ---
 
 **Последнее обновление**: 2025-11-25
+
+## Двухэтапный запуск (ветка `feature/two-stage-docker`)
+Быстрая репликация готовых артефактов `chunk_v6 + Qwen3-8B` и финального сабмишна через реранк из кеша.
+
+```bash
+# 1) Ретривер: копирует готовые чанки и FAISS-индекс
+docker build -f Dockerfile.retriever -t retriever-cached .
+docker run --rm --gpus all -v $(pwd)/outputs:/app/outputs retriever-cached
+
+# 2) Реранкер из кеша (Qwen3-Embedding-8B + Qwen3-Reranker-8B int4)
+docker build -f Dockerfile.reranker -t qwen3-reranker .
+docker run --rm --gpus all -v $(pwd)/outputs:/app/outputs qwen3-reranker
+
+# Результаты:
+#  - outputs/submission_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv (retriever)
+#  - outputs/qwen3_rerank_runs/<run>/submission_*.csv (после реранка)
+```
+
+Тюнинг через переменные окружения при `docker run`: `OUTPUT_DIR`, `INDEX_DIR`, `POOL_SIZE`, `RERANK_TO`, `EMBED_BATCH_SIZE`, `RERANKER_BATCH_SIZE`, `RUN_TAG`.
