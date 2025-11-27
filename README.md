@@ -15,7 +15,7 @@
 ## Финальные артефакты
 
 - Ретривер (chunk_v6, Qwen3-8B, CC 0.7/1.0): `outputs/submission_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv`
-- Реранкер (Qwen3 rerank from cache, pool=50, int4): `outputs/qwen3_rerank_runs/qwen3_v6_pool50_int4_fast_resume_20251127_130947/submission_qwen3_v6_pool50_int4_fast_resume_20251127_130947.csv`
+- Реранкер (Qwen3 rerank from cache, pool=50, int4): `outputs/qwen3_rerank_runs/submission_qwen3_v6_pool50_int4_fast_resume_20251127_130947.csv`
 
 ## Быстрый старт
 
