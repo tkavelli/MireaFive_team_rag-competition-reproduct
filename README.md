@@ -22,9 +22,10 @@
 ### 1. Docker (рекомендуется)
 
 ```bash
-# Клонирование репозитория
-git clone https://github.com/tkavelli/retrieval-competition-reproduct.git
-cd retrieval-competition-reproduct
+# Клонирование репозитория (ветка two-stage)
+git clone https://github.com/tkavelli/MireaFive_team_rag-competition-reproduct.git
+cd MireaFive_team_rag-competition-reproduct
+git checkout feature/two-stage-docker
 
 # Сборка контейнера (Ubuntu 24.04 + CUDA 12.8)
 docker build -t alfa-rag-solution .
@@ -125,14 +126,17 @@ retrieval-competition-reproduct/
 ├── pipelines/
 │   └── retrieve.py              # Основной pipeline
 │
-└── outputs/                     # Результаты (создаются после запуска)
-    ├── submission_ch_v5_qwen3_8b.csv
-    ├── chunks_ch_v5_qwen3_8b.csv
-    └── faiss_index_ch_v5_qwen3_8b/
-        ├── embeddings.npy
-        ├── faiss_index.bin
-        ├── chunks.csv
-        └── metadata.json
+└── outputs/                     # Результаты (в репо уже упакован v6 + Qwen3-8B)
+    ├── chunks_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv
+    ├── submission_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv
+    ├── faiss_index_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00/
+    │   ├── embeddings.npy
+    │   ├── faiss_index.bin.part.aa
+    │   ├── faiss_index.bin.part.ab
+    │   ├── chunks.csv
+    │   └── metadata.json
+    └── qwen3_rerank_runs/
+        └── submission_qwen3_v6_pool50_int4_fast_resume_20251127_130947.csv
 ```
 
 ## Конфигурация
@@ -204,32 +208,16 @@ sudo systemctl restart docker
 GitHub: [@tkavelli](https://github.com/tkavelli)
 Telegram [@Nikolay_Bubnov]
 
-## Pending / Not Yet Integrated
+## Дополнительно
 
-- **Qwen3 reranking (отдельный шаг):**
-  - Скрипт: `scripts/run_qwen3_rerank_from_cache.py` (поддерживает int4 через bitsandbytes).
-  - План: брать готовый FAISS из `outputs/faiss_index_ch_v5_qwen3_8b` (или свой), пул 100–120 кандидатов, собирать контекст из 2–3 топ-чанков + соседей до ~6k токенов, реранкер `Qwen/Qwen3-Reranker-8B` (или 4B) в int4, `batch_size` 4–6, `rerank_to=5`.
-  - Запуск (пример):
-    ```bash
-    python scripts/run_qwen3_rerank_from_cache.py \
-      --queries data/questions_clean.csv \
-      --index-dir outputs/faiss_index_ch_v5_qwen3_8b \
-      --pool-size 120 --rerank-to 5 \
-      --reranker-model Qwen/Qwen3-Reranker-8B \
-      --reranker-quantization int4 \
-      --max-doc-tokens 6000 --chunks-per-doc 3 --max-chunks-per-doc 5
-    ```
+- `scripts/run_qwen3_rerank_from_cache.py` — сейчас используется во втором контейнере (см. двухэтапный запуск).
+- `scripts/generate_chunk_variants.py` — для регенерации альтернативных чанков при желании.
 
-- **Альтернативные чанки (v6 и др.):**
-  - Генерация: `scripts/generate_chunk_variants.py` (можно через JSON-конфиг). Рекомендуемый старт для реранка — chunk_size ~1000–1200, overlap 80–120.
-  - Текущий baseline пересчитывает v5 внутри `run_qwen3_rrf_v2_stable.sh`. Чтобы использовать готовые чанки/индекс, передайте `--chunks-file` и `--index_path` в `pipelines/retrieve.py` или соберите FAISS из CSV перед реранком.
-
----
-
-**Последнее обновление**: 2025-11-25
+**Последнее обновление**: 2025-11-27
 
 ## Двухэтапный запуск (ветка `feature/two-stage-docker`)
 Быстрая репликация готовых артефактов `chunk_v6 + Qwen3-8B` и финального сабмишна через реранк из кеша.
+Артефакты уже в репозитории: чанки, embeddings, FAISS (разбит на части <100MB, собирается скриптом), финальный CSV после реранка.
 
 ```bash
 # 1) Ретривер: копирует готовые чанки и FAISS-индекс

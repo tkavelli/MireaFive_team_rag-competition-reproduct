@@ -3,8 +3,17 @@ __pycache__/
 *.pyc
 
 # Local artifacts
-outputs/
 .hf_cache/
+
+# Track specific cached outputs; keep heavy binaries out of git.
+outputs/**
+!outputs/chunks_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv
+!outputs/submission_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv
+!outputs/qwen3_rerank_runs
+!outputs/qwen3_rerank_runs/**
+!outputs/faiss_index_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00
+!outputs/faiss_index_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00/**
+outputs/faiss_index_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00/faiss_index.bin
 
 # Tool caches
 pipelines/__pycache__/
@@ -13,4 +22,3 @@ src/__pycache__/
 # VS Code / IDE
 .vscode/
 .idea/
-

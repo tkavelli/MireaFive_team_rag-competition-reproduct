@@ -11,6 +11,11 @@ RERANK_BS=${RERANKER_BATCH_SIZE:-6}
 
 mkdir -p "$OUT_DIR/qwen3_rerank_runs"
 
+if [ ! -f "$INDEX_DIR/faiss_index.bin" ] && [ -f "$INDEX_DIR/faiss_index.bin.part.aa" ]; then
+  echo "[reranker] assembling faiss_index.bin from parts..."
+  cat "$INDEX_DIR"/faiss_index.bin.part.* > "$INDEX_DIR/faiss_index.bin"
+fi
+
 echo "[reranker] index: $INDEX_DIR"
 echo "[reranker] outputs: $OUT_DIR/qwen3_rerank_runs"
 
