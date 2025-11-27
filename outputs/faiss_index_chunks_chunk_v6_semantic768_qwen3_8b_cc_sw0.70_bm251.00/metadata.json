@@ -1,0 +1,6 @@
+{
+  "model_name": "Qwen/Qwen3-Embedding-8B",
+  "dimension": 4096,
+  "num_chunks": 10717,
+  "device": "cuda"
+}
