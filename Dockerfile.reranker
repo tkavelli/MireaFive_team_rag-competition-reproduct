@@ -1,0 +1,33 @@
+# Lightweight image for running Qwen3 reranker from cached FAISS index
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    HF_HOME=/app/.hf_cache \
+    TRANSFORMERS_CACHE=/app/.hf_cache \
+    PYTHONPATH=/app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt \
+ && pip3 install --no-cache-dir faiss-gpu==1.7.2.post3 || pip3 install --no-cache-dir faiss-cpu==1.7.2
+
+COPY src/ src/
+COPY scripts/ scripts/
+COPY configs/ configs/
+COPY data/ data/
+COPY outputs/ outputs/
+COPY run_reranker_from_cache.sh ./
+
+RUN chmod +x run_reranker_from_cache.sh
+
+# Default command reranks from cached Qwen3 embeddings/index (chunk_v6, pool50, int4).
+CMD ["bash", "run_reranker_from_cache.sh"]
