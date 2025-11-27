@@ -1,6 +1,8 @@
 # Alfa Bank RAG Competition Solution
 
-**Hit@5: 36.40%** - Полностью воспроизводимое решение с Docker контейнером
+🏆 **Команда MireaFive — top 15 в финальном лидерборде**
+
+**Hit@5: 36.40%** — Полностью воспроизводимое решение с Docker контейнером
 
 ## О проекте
 
@@ -9,6 +11,11 @@
 - **Dense Retrieval**: Qwen/Qwen3-Embedding-8B (1024d embeddings)
 - **Sparse Retrieval**: BM25 с TF-IDF векторизацией
 - **Fusion**: Convex Combination (70% semantic + 30% BM25)
+
+## Финальные артефакты
+
+- Ретривер (chunk_v6, Qwen3-8B, CC 0.7/1.0): `outputs/submission_chunks_chunk_v6_semantic768_qwen3_8b_cc_sw0.70_bm251.00.csv`
+- Реранкер (Qwen3 rerank from cache, pool=50, int4): `outputs/qwen3_rerank_runs/qwen3_v6_pool50_int4_fast_resume_20251127_130947/submission_qwen3_v6_pool50_int4_fast_resume_20251127_130947.csv`
 
 ## Быстрый старт
 
